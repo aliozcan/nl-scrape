@@ -1,0 +1,20 @@
+version: '3.4'
+services:
+    foursquare:
+        build: ./foursquare
+        volumes: 
+            - data:/foursquare/output
+        command: python main.py
+    fundanl:
+        build: ./fundanl
+        volumes:
+            - data:/fundanl/output
+        command: python main.py
+    data:
+        image: busybox:latest
+        volumes:
+            - data:/data
+volumes:
+    data: 
+        external: true
+        name: scrape_data
