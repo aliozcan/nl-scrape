@@ -1,1 +1,1 @@
-everal scraping projects for the Netherlands.
+Several scraping projects for the Netherlands.
