@@ -5,10 +5,12 @@ import random
 import re
 import schedule
 import time
+import psycopg2
 from collections import OrderedDict
-
 from requests_html import HTMLSession
 
+_connection = f'host=localhost user=postgres password=postgres'
+conn = psycopg2.connect(_connection)
 
 def requests_html():
     #daily job
@@ -29,21 +31,18 @@ def requests_html():
     huis_link_regex = r'.+(huis|appartement)-\d+.+/'
     
     try:
-        existing_houses = {line.split(';')[0] for line in open('output/result.csv', 'r')}
+        existing_houses = set(line.split(';')[0] for line in open('output/result.csv', 'r'))
     except FileNotFoundError:
-        existing_houses = {}
+        existing_houses = set()
     
     for region_url in urls:
         r = session.get(region_url, headers=headers, timeout=5)
-        #import ipdb
-        #ipdb.set_trace()
         max_page = [re.search(max_page_regex, link) for link in r.html.links]
         max_page = max([int(page.group(1)) for page in max_page if page])
         logger.info(f'Max page: {max_page}')
-        # result is url, house
         result = OrderedDict()
         try:
-            for page in range(1, max_page + 1):
+            for page in range(1, 2):#max_page + 1):
                 url = f'{region_url}p{page}/'           
                 r = session.get(url, headers=headers)
                 houses = [re.search(huis_link_regex, link) for link in r.html.links]
@@ -58,7 +57,7 @@ def requests_html():
 
                 for count, house_url in enumerate(houses):
                     house_url_postfix = re.search(r'(huis|appartement)-\d+.+', house_url).group(0).replace('/', '')
-                    existing_houses.add(house_url_postfix)    
+                    existing_houses.add(house_url_postfix)
                     logger.info(f'page {page}, house {count + 1}, url: {house_url} parsing')
 
                     r = session.get(house_url, headers=headers)
@@ -88,16 +87,38 @@ def requests_html():
                     time.sleep(sleep_t)
         except (Exception, KeyboardInterrupt) as e:
             logger.info(f'page: {count}, house: {count}, url:{house_url}: {e}')
-            with open('output/result.csv', 'a+') as f:
-                for k, v in result.items():
-                    f.write(f'{k};{json.dumps(v)}\n')
+        finally:
+            write_results_to_db(result)
 
-        with open('output/result.csv', 'a+') as f:
-            for k, v in result.items():
-                f.write(f'{k};{json.dumps(v)}\n')
 
+def write_results_to_db(result):
+    try:
+        cur = conn.cursor()
+        for k, v in result.items():
+            cur.execute("insert into fundanl_sale(url, body) values (%s, %s)", (k, json.dumps(v)))
+            conn.commit()
+            logger.info(f'{len(result)} items are written.')
+    except Exception as e:
+        logger.info(f'{e}')
+        conn.rollback()
+    finally:
+        cur.close()
+
+
+
+def init_db():
+    try:
+        cur = conn.cursor()
+        cur.execute('create table if not exists fundanl_sale(url text, body json);')
+        conn.commit()
+    except:
+        conn.rollback()
+    finally:
+        cur.close()
+    
 
 def main():
+    init_db()
     requests_html()
     schedule.every().day.at('20:30').do(requests_html)
     while True:
