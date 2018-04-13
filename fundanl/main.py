@@ -9,7 +9,7 @@ import psycopg2
 from collections import OrderedDict
 from requests_html import HTMLSession
 
-_connection = f'host=localhost user=postgres password=postgres'
+_connection = f'host=postgres user=postgres password=postgres'
 conn = psycopg2.connect(_connection)
 
 def requests_html():
