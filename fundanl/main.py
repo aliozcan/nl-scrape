@@ -31,7 +31,7 @@ def requests_html():
     
     max_page_regex = r'p([0-9]+)/$'
     huis_link_regex = r'.+(huis|appartement)-\d+.+/'
-    link_regex = r'(\w+)/(\w+)/(huis|appartement)-\d+.+' # koop/rotterdam/huis-40536936-petrus-trousselotstr
+    link_regex = r'(\w+)/([a-zA-Z-_]+)/(huis|appartement)-\d+.+' # koop/rotterdam/huis-40536936-petrus-trousselotstr
 
     try:
         cur = conn.cursor()
