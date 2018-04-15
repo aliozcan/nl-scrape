@@ -106,11 +106,12 @@ def write_results_to_db(result):
         cur = conn.cursor()
         for k, v in result.items():
             cur.execute("insert into fundanl(url, body) values (%s, %s)", (k, json.dumps(v)))
-            conn.commit()
-            logger.info(f'{len(result)} items are written.')
+            conn.commit()    
     except Exception as e:
         logger.info(f'{e}')
         conn.rollback()
+    else:
+        logger.info(f'{len(result)} items are written.')
     finally:
         cur.close()
 
