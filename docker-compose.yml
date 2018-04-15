@@ -7,15 +7,11 @@ services:
         command: python main.py
     fundanl:
         build: ./fundanl
-        volumes:
-            - data:/fundanl/output
         links:
             - postgres
         command: python main.py
     pararius:
         build: ./pararius
-        volumes:
-            - data:/pararius/output
         links:
             - postgres
         command: python main.py
