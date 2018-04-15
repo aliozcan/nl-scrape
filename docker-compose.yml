@@ -9,6 +9,15 @@ services:
         build: ./fundanl
         volumes:
             - data:/fundanl/output
+        links:
+            - postgres
+        command: python main.py
+    pararius:
+        build: ./pararius
+        volumes:
+            - data:/pararius/output
+        links:
+            - postgres
         command: python main.py
     postgres:
         image: mdillon/postgis:latest
