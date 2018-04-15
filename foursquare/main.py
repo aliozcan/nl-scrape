@@ -2,6 +2,7 @@ import datetime as dt
 import json
 import logging
 import time
+import sys
 from itertools import cycle
 
 import pandas as pd
@@ -163,8 +164,8 @@ def get_venues_by_grid():
 
 
 if __name__ == '__main__':
-    logger = logging.getLogger('istapp')
-    hdlr = logging.FileHandler('istapp.log')
+    logger = logging.getLogger('foursquare')
+    hdlr = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter('%(asctime)s;%(levelname)s;%(message)s;')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)

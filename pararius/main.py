@@ -26,7 +26,8 @@ def requests_html():
     }
     session = HTMLSession()
     
-    urls = ['https://www.pararius.com/apartments/rotterdam/']
+    urls = ['https://www.pararius.com/apartments/rotterdam/',
+            'https://www.pararius.com/apartments/den-haag']
     
     max_page_regex = r'page-([0-9]+)$'
     link_regex = r'([a-zA-Z-_]+)/([a-zA-Z-_]+)/([A-Z0-9]+/(\w+))' # apartment-for-rent/rotterdam/PR0001447944/hoevestraat
@@ -111,7 +112,8 @@ def requests_html():
             logger.info(f'page: {count}, house: {count}, url:{house_url}: {e}')
         finally:
             write_results_to_db(result)
-
+            result = OrderedDict()
+    return 
 
 def write_results_to_db(result):
     try:
@@ -119,10 +121,11 @@ def write_results_to_db(result):
         for k, v in result.items():
             cur.execute("insert into pararius(url, body) values (%s, %s)", (k, json.dumps(v)))
             conn.commit()
-            logger.info(f'{len(result)} items are written.')
     except Exception as e:
         logger.info(f'{e}')
         conn.rollback()
+    else:
+        logger.info(f'{len(result)} items are written.')
     finally:
         cur.close()
 

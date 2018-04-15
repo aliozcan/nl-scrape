@@ -5,6 +5,7 @@ import random
 import re
 import schedule
 import time
+import sys
 import psycopg2
 from itertools import chain
 from collections import OrderedDict
@@ -137,7 +138,7 @@ def main():
 
 if __name__ == '__main__':
     logger = logging.getLogger('fundanl')
-    hdlr = logging.FileHandler('output/fundanl.log')
+    hdlr = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter('%(asctime)s;%(levelname)s;%(message)s;')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
