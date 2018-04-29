@@ -1,5 +1,20 @@
 version: '3.4'
 services:
+    vpn:
+        image: bubuntux/nordvpn
+        cap_add:
+            - net_admin
+        env_file:
+            - .env # make sure it contains USER and PASS
+        networks:
+            - default
+        devices:
+            - '/dev/net/tun'
+        tmpfs:
+            - /tmp
+        restart: unless-stopped
+        stdin_open: true
+        tty: true
     foursquare:
         build: ./foursquare
         volumes: 
@@ -14,13 +29,12 @@ services:
         build: ./pararius
         links:
             - postgres
-        command: python main.py
+        network_mode: "service:vpn"
+        #command: python main.py
     postgres:
         image: mdillon/postgis:latest
-        environment:
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
-            - POSTGRES_DB=nl-scrape
+        env_file:
+            - .env # make sure it contains POSTGRES_USER, POSTGRES_DB and POSTGRES_PASSWORD
         ports:
             - '5432:5432'
         volumes:
@@ -37,3 +51,5 @@ volumes:
     postgres_data: 
         external: true
         name: postgres_data
+networks:
+    default:
