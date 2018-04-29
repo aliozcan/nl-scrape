@@ -27,7 +27,8 @@ def requests_html():
     session = HTMLSession()
     
     urls = ['https://www.pararius.com/apartments/rotterdam/',
-            'https://www.pararius.com/apartments/den-haag']
+            'https://www.pararius.com/apartments/den-haag/',
+            'https://www.pararius.com/apartments/amsterdam/']
     
     max_page_regex = r'page-([0-9]+)$'
     link_regex = r'([a-zA-Z-_]+)/([a-zA-Z-_]+)/([A-Z0-9]+/(\w+))' # apartment-for-rent/rotterdam/PR0001447944/hoevestraat
@@ -45,6 +46,10 @@ def requests_html():
  
     for region_url in urls:
         r = session.get(region_url, headers=headers, timeout=5)
+        r.html.render()
+        if r.status_code != 200:
+            raise ValueError(f'Status code: {r.status_code}')
+
         max_page = [re.search(max_page_regex, link) for link in r.html.links]
         max_page = max([int(page.group(1)) for page in max_page if page])
         logger.info(f'Max page: {max_page}')
