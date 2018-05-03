@@ -19,12 +19,20 @@ def requests_html():
     headers = {
         'Host': 'www.pararius.com',
         'Connection': 'keep-alive',
-        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Safari/537.36",
+        'Upgrade-Insecure-Requests': '1',
+        'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36",
         'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        'Accept-Encoding': 'gzip, deflate',
+        'Accept-Encoding': 'gzip, deflate, br',
         'Accept-Language': 'en-US,en;q=0.9'
     }
     session = HTMLSession()
+    r = session.get('https://www.pararius.com/', headers=headers, timeout=5)
+    if r.status_code == 200:
+        k,v = session.cookies.get_dict().popitem()
+        headers.update({'Cookie': f'{k}={v}'})
+    
+    sleep_t = random.randint(6, 15)
+    time.sleep(sleep_t)
     
     urls = ['https://www.pararius.com/apartments/rotterdam/',
             'https://www.pararius.com/apartments/den-haag/',
@@ -46,7 +54,6 @@ def requests_html():
  
     for region_url in urls:
         r = session.get(region_url, headers=headers, timeout=5)
-        r.html.render()
         if r.status_code != 200:
             raise ValueError(f'Status code: {r.status_code}')
 

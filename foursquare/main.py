@@ -5,7 +5,6 @@ import time
 import sys
 from itertools import cycle
 
-import pandas as pd
 import psycopg2
 import requests
 import yaml
@@ -128,9 +127,10 @@ def get_venues_by_grid():
             resp = requests.get(url=venue_search_url, params=params)
             if resp.status_code == 200:
                 data = json.loads(resp.text)
-                data = pd.DataFrame(data['response']['venues'], columns=['id'])
-                result[count] = ','.join(data['id'])
-                logger.info(f'{count}, {len(data["id"])}')
+                ids = data['response']['venues'].get('ids')
+                #data = pd.DataFrame(data['response']['venues'], columns=['id'])
+                result[count] = ','.join(ids)
+                logger.info(f'{count}, {len(ids)}')
                 grid = grids.readline()
                 count += 1
             elif resp.status_code in [429, 403]:

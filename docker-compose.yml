@@ -1,13 +1,12 @@
 version: '3.4'
 services:
-    vpn:
+    vpn-client:
         image: bubuntux/nordvpn
+        container_name: vpn-client
         cap_add:
             - net_admin
         env_file:
             - .env # make sure it contains USER and PASS
-        networks:
-            - default
         devices:
             - '/dev/net/tun'
         tmpfs:
@@ -27,12 +26,18 @@ services:
         command: python main.py
     pararius:
         build: ./pararius
-        links:
-            - postgres
-        network_mode: "service:vpn"
-        #command: python main.py
+        container_name: pararius
+        depends_on:
+            - vpn-client
+        #links:
+        #    - postgres
+        network_mode: "service:vpn-client"
+        stdin_open: true
+        tty: true
+        command: sh #python main.py
     postgres:
         image: mdillon/postgis:latest
+        container_name: postgres
         env_file:
             - .env # make sure it contains POSTGRES_USER, POSTGRES_DB and POSTGRES_PASSWORD
         ports:
@@ -51,5 +56,3 @@ volumes:
     postgres_data: 
         external: true
         name: postgres_data
-networks:
-    default:

@@ -29,7 +29,7 @@ def requests_html():
     urls = ['https://www.funda.nl/koop/gemeente-rotterdam/', 
             'https://www.funda.nl/koop/berkel-en-rodenrijs/',
             'https://www.funda.nl/huur/gemeente-rotterdam/',
-            'https://www.funda.nl/huur/gemeente-amsterdam/'
+            'https://www.funda.nl/huur/gemeente-amsterdam/',
             'https://www.funda.nl/koop/gemeente-amsterdam/']
     
     max_page_regex = r'p([0-9]+)/$'
@@ -133,7 +133,7 @@ def init_db():
 def main():
     init_db()
     requests_html()
-    schedule.every().day.at('12:00').do(requests_html)
+    schedule.every().day.at('07:00').do(requests_html)
     while True:
         schedule.run_pending()
         time.sleep(1)
