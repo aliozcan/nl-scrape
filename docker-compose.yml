@@ -21,6 +21,8 @@ services:
         command: python main.py
     fundanl:
         build: ./fundanl
+        env_file:
+            - .env
         links:
             - postgres
         command: python main.py

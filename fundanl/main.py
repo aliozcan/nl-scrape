@@ -6,12 +6,13 @@ import re
 import schedule
 import time
 import sys
+import os
 import psycopg2
 from itertools import chain
 from collections import OrderedDict
 from requests_html import HTMLSession
 
-_connection = f'host=postgres user=postgres password=postgres'
+_connection = f"host=postgres user={os.getenv('POSTGRES_USER')} password={os.getenv('POSTGRES_PASSWORD')}"
 conn = psycopg2.connect(_connection)
 
 def requests_html():
@@ -48,7 +49,15 @@ def requests_html():
         cur.close()
  
     for region_url in urls:
-        r = session.get(region_url, headers=headers, timeout=5)
+        for _ in range(10):
+            try:
+                r = session.get(region_url, headers=headers, timeout=5)
+            except Exception as e:
+                time.sleep(random.randint(60, 150))
+                pass
+            else:
+                break
+
         max_page = [re.search(max_page_regex, link) for link in r.html.links]
         max_page = max([int(page.group(1)) for page in max_page if page])
         logger.info(f'Max page: {max_page}')
