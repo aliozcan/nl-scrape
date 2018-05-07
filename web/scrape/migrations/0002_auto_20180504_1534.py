@@ -2,6 +2,8 @@
 
 from django.db import migrations
 import os
+import requests
+import zipfile
 from django.contrib.gis.utils import LayerMapping
 from ..models import province_mapping, region_mapping, country_mapping
 
@@ -11,16 +13,25 @@ def run(apps, schema_editor):
     Province = apps.get_model('scrape', 'Province')
     Region = apps.get_model('scrape', 'Region')
 
+    response = requests.get("http://biogeo.ucdavis.edu/data/diva/adm/NLD_adm.zip")
+    data_path = os.path.join(os.path.dirname(__file__), os.pardir, 'data')
+
+    with open(os.path.join(data_path, 'NLD_adm.zip'), 'wb+') as f:
+        f.write(response.content)
+
+    with zipfile.ZipFile(os.path.join(data_path, 'NLD_adm.zip'), 'r') as zip_ref:
+        zip_ref.extractall(os.path.join(data_path, os.pardir, 'data'))
+
     country_shp = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../' 'data', 'NLD_adm', 'NLD_adm0.shp'),
+        os.path.join(os.path.dirname(__file__), os.pardir, 'data', 'NLD_adm0.shp'),
     )
 
     province_shp = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '../', 'data', 'NLD_adm', 'NLD_adm1.shp'),
+        os.path.join(os.path.dirname(__file__), os.pardir, 'data', 'NLD_adm1.shp'),
     )
 
     region_shp = os.path.abspath(
-        os.path.join(os.path.dirname(__file__),  '../', 'data', 'NLD_adm', 'NLD_adm2.shp'),
+        os.path.join(os.path.dirname(__file__),  os.pardir, 'data', 'NLD_adm2.shp'),
     )
     ct = LayerMapping(
         Country, country_shp, country_mapping,
