@@ -47,6 +47,28 @@ services:
         volumes:
             - postgres_data:/var/lib/postgresql/data
         restart: always
+    rabbitmq:
+        image: rabbitmq:3.7-rc-management
+        container_name: rabbitmq
+        env_file:
+            - .env
+        restart: always
+        ports:
+            - '5672:5672'
+            - '15672:15672'
+    worker:
+        build: ./worker_app
+        container_name: worker_app
+        #command: celery -A worker_app worker --concurrency=5 --loglevel=info
+        env_file:
+            - .env
+        links:
+            - rabbitmq
+            - postgres
+        depends_on:
+            - rabbitmq
+            - postgres
+        tty: true
     data:
         image: busybox:latest
         volumes:
