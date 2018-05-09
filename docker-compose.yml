@@ -19,13 +19,6 @@ services:
         volumes: 
             - data:/foursquare/output
         command: python main.py
-    fundanl:
-        build: ./fundanl
-        env_file:
-            - .env
-        links:
-            - postgres
-        command: python main.py
     pararius:
         build: ./pararius
         container_name: pararius
@@ -56,10 +49,10 @@ services:
         ports:
             - '5672:5672'
             - '15672:15672'
-    worker:
-        build: ./worker_app
-        container_name: worker_app
-        #command: celery -A worker_app worker --concurrency=5 --loglevel=info
+    fundanl:
+        build: ./fundanl
+        container_name: fundanl
+        #command: celery -A celery_app worker --concurrency=2 --loglevel=info
         env_file:
             - .env
         links:
@@ -68,7 +61,13 @@ services:
         depends_on:
             - rabbitmq
             - postgres
-        tty: true
+    rproxy:
+        image: anuragrana/rotating-proxy
+        environment:
+            - tors=25
+        ports:
+            - '5566:5566'
+            - '4444:4444'
     data:
         image: busybox:latest
         volumes:
