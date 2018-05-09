@@ -1,19 +1,5 @@
 version: '3.4'
 services:
-    vpn-client:
-        image: bubuntux/nordvpn
-        container_name: vpn-client
-        cap_add:
-            - net_admin
-        env_file:
-            - .env # make sure it contains USER and PASS
-        devices:
-            - '/dev/net/tun'
-        tmpfs:
-            - /tmp
-        restart: unless-stopped
-        stdin_open: true
-        tty: true
     foursquare:
         build: ./foursquare
         volumes: 
