@@ -3,12 +3,11 @@ import psycopg2
 import logging
 import json
 from itertools import chain
-from collections import ChainMap
+from collections import ChainMap, OrderedDict
 
 _connection = f"host=postgres user={os.getenv('POSTGRES_USER')} password={os.getenv('POSTGRES_PASSWORD')}"
 conn = psycopg2.connect(_connection)
-logger = get_task_logger(__name__)
-
+logger = logging.getLogger(__name__)
 
 def get_scraped_results() -> set:
     try:
@@ -16,7 +15,7 @@ def get_scraped_results() -> set:
         cur.execute('select distinct url from fundanl')
         existing_houses = cur.fetchall()
         existing_houses = set(chain(*existing_houses))
-    except Exception as e:
+    except Exception as :
         logger.info(f'{e}')
         existing_houses = set()
     finally:

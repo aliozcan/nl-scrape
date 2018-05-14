@@ -37,26 +37,27 @@ def requests_html():
         logger.info(f'Max page: {max_page}')
         try:
             for page in range(1, max_page + 1):
-                url = f'{region_url}p{page}/'           
+                url = f'{region_url}p{page}/'
                 r = session.get(url, headers=get_headers(), timeout=5)
                 houses = [re.search(huis_link_regex, link) for link in r.html.links]
                 houses = [f'https://www.funda.nl{link.group(0)}' for link in houses if link]
                 house_count = len(houses)
                 logger.info(f'starting page {page}, url: {url}, # houses: {house_count}')
-                houses = [house for house in houses if re.search(huis_link_regex, house).group(0).replace('/', '') not in existing_houses]
+                houses = [house for house in houses if re.search(link_regex, house).group(0) not in existing_houses]
                 logger.info(f'{house_count - len(houses)} links already scraped.')
                 for count, house_url in enumerate(houses):
                     house_url_postfix = re.search(link_regex, house_url).group(0)
                     existing_houses.add(house_url_postfix)
                     scrape.delay(house_url)
-                    logger.info(f'Task submitted: page: {page}, house: {count + 1}, url: {house_url}')
+                    logger.info(f'Task submitted: page: {page}/{max_page}, house: {count + 1}/{house_count - len(houses)}, url: {house_url}')
+                    time.sleep(random.randint(50, 100))
+                time.sleep(random.randint(60, 150))
         except (Exception, KeyboardInterrupt) as e:
             logger.info(f'page: {count}, house: {count}, url:{house_url}: {e}')
 
 
 def main():
     init_db()
-    requests_html()
     schedule.every().day.at('07:00').do(requests_html)
     while True:
         schedule.run_pending()
