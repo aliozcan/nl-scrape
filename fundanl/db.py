@@ -15,7 +15,7 @@ def get_scraped_results() -> set:
         cur.execute('select distinct url from fundanl')
         existing_houses = cur.fetchall()
         existing_houses = set(chain(*existing_houses))
-    except Exception as :
+    except Exception as e:
         logger.info(f'{e}')
         existing_houses = set()
     finally:
