@@ -1,16 +1,5 @@
 version: '3.4'
 services:
-    foursquare:
-        build: ./foursquare
-        volumes: 
-            - data:/foursquare/output
-        command: python main.py
-    pararius:
-        build: ./pararius
-        container_name: pararius
-        stdin_open: true
-        tty: true
-        command: sh #python main.py
     postgres:
         image: mdillon/postgis:latest
         container_name: postgres
@@ -30,10 +19,10 @@ services:
         ports:
             - '5672:5672'
             - '15672:15672'
-    fundanl:
+    worker:
         build: ./fundanl
-        container_name: fundanl
-        command: bash -c 'sleep 5; python main.py'
+        container_name: fundanl_worker
+        command: celery -A celery_app worker --concurrency=2 --loglevel=info
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:
@@ -42,7 +31,17 @@ services:
         depends_on:
             - rabbitmq
             - postgres
-        tty: true
+    task:
+        build: ./fundanl
+        container_name: fundanl_task
+        command: python main.py
+        env_file:
+            - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
+        links:
+            - rabbitmq
+            - postgres
+        depends_on:
+            - worker
     rproxy:
         image: anuragrana/rotating-proxy
         environment:
