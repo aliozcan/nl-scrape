@@ -1,29 +1,20 @@
-import datetime as dt
-import json
 import logging
 import random
 import re
 import schedule
 import time
 import sys
-import os
-import psycopg2
-from itertools import chain
-from collections import OrderedDict
 from requests_html import HTMLSession
 from scrape import scrape
 from proxy import get_headers
-from db import conn
+from db import get_scraped_results, init_db
 
 def requests_html():
     #daily job
     session = HTMLSession()
     
-    urls = ['https://www.funda.nl/koop/gemeente-rotterdam/', 
-            'https://www.funda.nl/koop/berkel-en-rodenrijs/',
-            'https://www.funda.nl/huur/gemeente-rotterdam/',
-            'https://www.funda.nl/huur/gemeente-amsterdam/',
-            'https://www.funda.nl/koop/gemeente-amsterdam/']
+    urls = open('urls.txt', 'r').read().split('\n')
+    urls = random.shuffle(urls)
     
     max_page_regex = r'p([0-9]+)/$'
     huis_link_regex = r'.+(huis|appartement)-\d+.+/'
@@ -31,7 +22,6 @@ def requests_html():
 
     existing_houses = get_scraped_results()
 
- 
     for region_url in urls:
         for _ in range(10):
             try:
@@ -63,31 +53,6 @@ def requests_html():
         except (Exception, KeyboardInterrupt) as e:
             logger.info(f'page: {count}, house: {count}, url:{house_url}: {e}')
 
-
-def get_scraped_results() -> set:
-    try:
-        cur = conn.cursor()
-        cur.execute('select distinct url from fundanl')
-        existing_houses = cur.fetchall()
-        existing_houses = set(chain(*existing_houses))
-    except Exception as e:
-        logger.info(f'{e}')
-        existing_houses = set()
-    finally:
-        cur.close()
-        return existing_houses
-
-
-def init_db():
-    try:
-        cur = conn.cursor()
-        cur.execute('create table if not exists fundanl(url text, body json);')
-        conn.commit()
-    except:
-        conn.rollback()
-    finally:
-        cur.close()
-    
 
 def main():
     init_db()

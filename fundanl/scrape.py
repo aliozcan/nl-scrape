@@ -1,20 +1,12 @@
 import datetime as dt
-import json
-import logging
-import random
-import re
-import time
-import sys
-import os
-import psycopg2
-from itertools import chain
 from collections import OrderedDict
 from requests_html import HTMLResponse
 from celery_app import app
-from user_agents import user_agents
-from db import conn
+from db import write_results_to_db
 from celery.utils.log import get_task_logger
 from proxy import get_session
+
+
 logger = get_task_logger(__name__)
 
 
@@ -22,7 +14,7 @@ logger = get_task_logger(__name__)
 def scrape(self, house_url: str) -> HTMLResponse:
     session = get_session()
     try:
-        logging.info(f'Scraping {house_url}')
+        logger.info(f'Scraping {house_url}')
         r = session.get(house_url, timeout=5)
     except Exception as e:
         logger.info(f'Exception in {house_url}: {e}')
@@ -57,17 +49,3 @@ def parse_page(r: HTMLResponse, url: str) -> OrderedDict:
                     sub_item_list.append(sub_item)
         house.update({k.strip():v.strip() for k,v in zip(sub_item_list[::2], sub_item_list[1::2])})
     write_results_to_db(url, house)
-
-
-def write_results_to_db(url:str, house:OrderedDict):
-    try:
-        cur = conn.cursor()
-        cur.execute("insert into fundanl(url, body) values (%s, %s)", (url, json.dumps(house)))
-        conn.commit()    
-    except Exception as e:
-        logger.info(f'{e}')
-        conn.rollback()
-    else:
-        logger.info(f'{url} written.')
-    finally:
-        cur.close()
