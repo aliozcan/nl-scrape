@@ -54,21 +54,14 @@ services:
         container_name: flower
         command: "flower --port=5555 --basic_auth=$FLOWER_USER:$FLOWER_PASS"
         env_file:
-            - .env #FLOWER_USER, FLOWER_PASS
+            - .env #FLOWER_USER, FLOWER_PASS, CELERY_BROKER_URL=amqp://guest:guest@<broker_ipaddr>:5672// \
         depends_on:
             - rabbitmq
         ports:
             - '5555:5555'
         expose:
             - '5555'
-    data:
-        image: busybox:latest
-        volumes:
-            - data:/data
 volumes:
-    data: 
-        external: true
-        name: scrape_data
     postgres_data: 
         external: true
         name: postgres_data
