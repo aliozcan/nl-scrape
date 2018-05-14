@@ -1,3 +1,0 @@
-schedule
-requests_html
-psycopg2-binary
