@@ -50,7 +50,7 @@ def requests_html():
                     existing_houses.add(house_url_postfix)
                     scrape.delay(house_url)
                     logger.info(f'Task submitted: page: {page}/{max_page}, house: {count + 1}/{house_count - len(houses)}, url: {house_url}')
-                    time.sleep(random.randint(50, 100))
+                    time.sleep(random.randint(20, 30))
                 time.sleep(random.randint(60, 150))
         except (Exception, KeyboardInterrupt) as e:
             logger.info(e)
