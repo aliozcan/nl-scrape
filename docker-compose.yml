@@ -42,6 +42,8 @@ services:
             - postgres
         depends_on:
             - worker
+            - rabbitmq
+            - postgres
     rproxy:
         image: anuragrana/rotating-proxy
         environment:

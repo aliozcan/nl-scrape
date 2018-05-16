@@ -14,8 +14,7 @@ def requests_html():
     session = HTMLSession()
     
     urls = open('urls.txt', 'r').read().split('\n')
-    urls = random.shuffle(urls)
-    
+    random.shuffle(urls)
     max_page_regex = r'p([0-9]+)/$'
     huis_link_regex = r'.+(huis|appartement)-\d+.+/'
     link_regex = r'(\w+)/([a-zA-Z-_]+)/(huis|appartement)-\d+.+' # koop/rotterdam/huis-40536936-petrus-trousselotstr
@@ -45,6 +44,7 @@ def requests_html():
                 logger.info(f'starting page {page}, url: {url}, # houses: {house_count}')
                 houses = [house for house in houses if re.search(link_regex, house).group(0) not in existing_houses]
                 logger.info(f'{house_count - len(houses)} links already scraped.')
+                random.shuffle(houses)
                 for count, house_url in enumerate(houses):
                     house_url_postfix = re.search(link_regex, house_url).group(0)
                     existing_houses.add(house_url_postfix)
@@ -53,11 +53,12 @@ def requests_html():
                     time.sleep(random.randint(50, 100))
                 time.sleep(random.randint(60, 150))
         except (Exception, KeyboardInterrupt) as e:
-            logger.info(f'page: {count}, house: {count}, url:{house_url}: {e}')
+            logger.info(e)
 
 
 def main():
     init_db()
+    requests_html()
     schedule.every().day.at('07:00').do(requests_html)
     while True:
         schedule.run_pending()
