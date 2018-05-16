@@ -44,13 +44,6 @@ services:
             - worker
             - rabbitmq
             - postgres
-    rproxy:
-        image: anuragrana/rotating-proxy
-        environment:
-            - tors=25
-        ports:
-            - '5566:5566'
-            - '4444:4444'
     flower:
         build: ./flower
         container_name: flower
