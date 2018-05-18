@@ -9,7 +9,7 @@ from proxy import do_request
 from db import get_scraped_results, init_db
 
 
-def requests_html():
+def crawl():
     # daily job
     urls = open('urls.txt', 'r').read().split('\n')
     random.shuffle(urls)
@@ -42,18 +42,17 @@ def requests_html():
             for count, house_url in enumerate(houses):
                 house_url_postfix = re.search(link_regex, house_url).group(0)
                 existing_houses.add(house_url_postfix)
-                scrape.delay(house_url)
+                scrape.apply_async(args=(house_url), countdown=random.randint(20, 40))
                 logger.info(f'Submitted: page: {page}/{max_page},'
                             f' house: {count + 1}/{remaining_house_count},'
                             f' url: {house_url}')
-                time.sleep(random.randint(5, 30))
-            time.sleep(random.randint(60, 150))
+            time.sleep(random.randint(40, 60))
 
 
 def main():
     init_db()
-    requests_html()
-    schedule.every().day.at('07:00').do(requests_html)
+    crawl()
+    schedule.every().day.at('07:30').do(crawl)
     while True:
         schedule.run_pending()
         time.sleep(1)

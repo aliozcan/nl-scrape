@@ -1,5 +1,6 @@
 amqp
 celery
+eventlet
 psycopg2-binary
 schedule
 requests_html

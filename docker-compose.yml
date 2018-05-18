@@ -22,7 +22,7 @@ services:
     worker:
         build: ./fundanl
         container_name: fundanl_worker
-        command: celery -A celery_app worker --concurrency=2 --loglevel=info
+        command: celery -A celery_app worker -P eventlet -c 2 --loglevel=info
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:
