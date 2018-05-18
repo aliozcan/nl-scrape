@@ -42,7 +42,7 @@ def crawl():
             for count, house_url in enumerate(houses):
                 house_url_postfix = re.search(link_regex, house_url).group(0)
                 existing_houses.add(house_url_postfix)
-                scrape.apply_async(args=(house_url), countdown=random.randint(20, 40))
+                scrape.apply_async(args=[house_url], countdown=random.randint(20, 40))
                 logger.info(f'Submitted: page: {page}/{max_page},'
                             f' house: {count + 1}/{remaining_house_count},'
                             f' url: {house_url}')

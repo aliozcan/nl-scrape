@@ -3,11 +3,14 @@ import psycopg2
 import logging
 import json
 from itertools import chain
-from collections import ChainMap, OrderedDict
+from typing import Dict
 
-_connection = f"host=postgres user={os.getenv('POSTGRES_USER')} password={os.getenv('POSTGRES_PASSWORD')}"
+_connection = (f"host=postgres "
+               f"user={os.getenv('POSTGRES_USER')} "
+               f"password={os.getenv('POSTGRES_PASSWORD')}")
 conn = psycopg2.connect(_connection)
 logger = logging.getLogger(__name__)
+
 
 def get_scraped_results() -> set:
     try:
@@ -28,17 +31,18 @@ def init_db():
         cur = conn.cursor()
         cur.execute('create table if not exists fundanl(url text, body json);')
         conn.commit()
-    except:
+    except Exception:
         conn.rollback()
     finally:
         cur.close()
 
 
-def write_results_to_db(url:str, house:OrderedDict):
+def write_results_to_db(url: str, house: Dict):
     try:
         cur = conn.cursor()
-        cur.execute("insert into fundanl(url, body) values (%s, %s)", (url, json.dumps(house)))
-        conn.commit()    
+        cur.execute(f"insert into fundanl(url, body) "
+                    f"values ({url}, {json.dumps(house)})")
+        conn.commit()
     except Exception as e:
         logger.info(f'{e}')
         conn.rollback()
