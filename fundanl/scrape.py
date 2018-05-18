@@ -24,7 +24,7 @@ def scrape(self, house_url: str) -> HTMLResponse:
         raise self.retry(countdown=seconds_to_wait)
     else:
         if r.status_code == 200:
-            parse_page(r, house_url)
+            return parse_page(r, house_url)
 
 
 def parse_page(r: HTMLResponse, url: str) -> OrderedDict:
@@ -53,3 +53,4 @@ def parse_page(r: HTMLResponse, url: str) -> OrderedDict:
         house.update({k.strip(): v.strip()
                      for k, v in zip(sub_item_list[::2], sub_item_list[1::2])})
     write_results_to_db(url, house)
+    return True

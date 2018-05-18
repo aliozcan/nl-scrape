@@ -6,6 +6,7 @@ from itertools import chain
 from typing import Dict
 
 _connection = (f"host=postgres "
+               f"dbname=postgres "
                f"user={os.getenv('POSTGRES_USER')} "
                f"password={os.getenv('POSTGRES_PASSWORD')}")
 conn = psycopg2.connect(_connection)
@@ -40,8 +41,8 @@ def init_db():
 def write_results_to_db(url: str, house: Dict):
     try:
         cur = conn.cursor()
-        cur.execute(f"insert into fundanl(url, body) "
-                    f"values ({url}, {json.dumps(house)})")
+        cur.execute("insert into fundanl(url, body) values (%s, %s)",
+                    (url, json.dumps(house)))
         conn.commit()
     except Exception as e:
         logger.info(f'{e}')
@@ -50,3 +51,7 @@ def write_results_to_db(url: str, house: Dict):
         logger.info(f'{url} written.')
     finally:
         cur.close()
+
+
+def close_connection():
+    conn.close()
