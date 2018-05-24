@@ -21,7 +21,7 @@ services:
             - '15672:15672'
     worker:
         build: ./fundanl
-        container_name: fundanl_worker
+        container_name: worker
         command: celery -A celery_app worker -P eventlet -c 2 --loglevel=info
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
@@ -31,10 +31,10 @@ services:
         depends_on:
             - rabbitmq
             - postgres
-    task:
+    scrape:
         build: ./fundanl
-        container_name: fundanl_task
-        command: python main.py
+        container_name: task
+        command: python scraper/main.py
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:
@@ -44,9 +44,25 @@ services:
             - worker
             - rabbitmq
             - postgres
-    flower:
-        build: ./flower
+    geocode:
+        build: ./fundanl
+        container_name: geocode
+        #command: python
+        stdin_open: true
+        tty: true
+        env_file:
+            - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
+        links:
+            - rabbitmq
+            - postgres
+        depends_on:
+            - worker
+            - rabbitmq
+            - postgres
+    monitor:
+        build: ./fundanl
         container_name: flower
+        entrypoint: celery
         command: "flower --port=5555 --basic_auth=$FLOWER_USER:$FLOWER_PASS"
         env_file:
             - .env #FLOWER_USER, FLOWER_PASS, CELERY_BROKER_URL=amqp://guest:guest@<broker_ipaddr>:5672// \

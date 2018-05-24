@@ -3,7 +3,7 @@ import psycopg2
 import logging
 import json
 from itertools import chain
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 
 _connection = (f"host=postgres "
@@ -19,26 +19,27 @@ def get_unique_urls_by_query(sql: str) -> set:
         cur = conn.cursor()
         cur.execute(sql)
         res = cur.fetchall()
-        res = set(chain(*res))
     except Exception as e:
         logger.info(f'{e}')
-        res = set()
+        res = []
     finally:
         cur.close()
         return res
 
 
-def get_missing_url_coordinates() -> set:
-    sql = ('select distinct url '
+def get_missing_url_coordinates() -> List[Tuple[str, str]]:
+    sql = ("select url, body->>'Address' "
            'from fundanl '
-           'where lat is null or lon is null '
-           'limit 1500;')
+           'where geometry is null '
+           'limit 1;')
     return get_unique_urls_by_query(sql)
 
 
 def get_scraped_results() -> set:
     sql = 'select distinct url from fundanl;'
-    return get_unique_urls_by_query(sql)
+    res = get_unique_urls_by_query(sql)
+    res = set(chain(*res))
+    return res
 
 
 def init_db():
@@ -47,8 +48,7 @@ def init_db():
         cur.execute("""create table if not exists fundanl(
                         url text,
                         body json,
-                        lat text,
-                        lon text);""")
+                        geometry geometry(Point, 4326));""")
         conn.commit()
     except Exception:
         conn.rollback()
@@ -79,11 +79,11 @@ def write_results_to_db(url: str, house: Dict) -> bool:
 
 def write_geocode_to_db(url: str, coords: Tuple) -> bool:
     sql = """update fundanl
-            set lat = %s, lon = %s
+            set geometry = ST_PointFromText('POINT(%s %s)', 4326)
             where url = %s"""
-    values = (url, coords[0], coords[1])
+    values = (coords[0], coords[1], url)
     return execute_sql(sql, values)
-
+#51.919104, 4.480833
 
 def close_connection():
     conn.close()

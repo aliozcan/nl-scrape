@@ -14,7 +14,7 @@ logger = get_task_logger(__name__)
 
 @app.task(bind=True, max_retries=3, default_retry_delay=10,
           task_time_limit=60, task_soft_time_limit=50)
-def geocode(self, url: str, address: str) -> HTMLResponse:
+def geocode(self, url: str, address: str) -> bool:
     session = get_session(use_proxy=False)
     url = 'https://maps.googleapis.com/maps/api/geocode/json'
     params = {'sensor': 'false',
@@ -30,17 +30,21 @@ def geocode(self, url: str, address: str) -> HTMLResponse:
     else:
         if r.status_code == 200:
             results = r.json()['results']
-            location = results[0]['geometry']['location']
-            return write_geocode_to_db(url, location)
+            if not len(result) > 0:
+                return False
+            else:
+                location = results[0]['geometry']['location']
+                return write_geocode_to_db(url, location)
 
 
 def iter_urls():
-    urls = get_missing_url_coordinates()
-    for url in urls:
-        geocode.apply_async(args=[url])
+    result = get_missing_url_coordinates()
+    for url, address in result:
+        geocode.apply_async(args=[url, address])
 
 
 def main():
+    iter_urls()
     schedule.every().day.at('07:30').do(iter_urls)
     while True:
         schedule.run_pending()

@@ -4,7 +4,6 @@ import re
 import schedule
 import time
 import sys
-from scrape import scrape
 from proxy import do_request
 from db import get_scraped_results, init_db
 
