@@ -4,9 +4,10 @@ import time
 from requests_html import HTMLSession
 
 
-def get_session() -> HTMLSession:
+def get_session(use_proxy: bool) -> HTMLSession:
     session = HTMLSession()
-    # session.proxies = {'http': 'rproxy:5566', 'https': 'rproxy:5566'}
+    if use_proxy:
+        session.proxies = {'http': 'rproxy:5566', 'https': 'rproxy:5566'}
     session.headers = get_headers()
     return session
 
@@ -26,7 +27,7 @@ def get_headers() -> dict:
 def do_request(url: str):
     for _ in range(10):
         try:
-            session = get_session()
+            session = get_session(use_proxy=False)
             r = session.get(url, timeout=5)
         except Exception:
             time.sleep(random.randint(60, 150))

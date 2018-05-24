@@ -56,6 +56,13 @@ services:
             - '5555:5555'
         expose:
             - '5555'
+    rproxy:
+        image: anuragrana/rotating-proxy
+        environment:
+            - tors=25
+        ports:
+            - '5566:5566'
+            - '4444:4444'
 volumes:
     postgres_data: 
         external: true
