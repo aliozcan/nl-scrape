@@ -31,7 +31,7 @@ def get_missing_url_coordinates() -> List[Tuple[str, str]]:
     sql = ("select url, body->>'Address' "
            'from fundanl '
            'where geometry is null '
-           'limit 1;')
+           'limit 1500;')
     return get_unique_urls_by_query(sql)
 
 
@@ -83,7 +83,3 @@ def write_geocode_to_db(url: str, coords: Tuple) -> bool:
             where url = %s"""
     values = (coords[0], coords[1], url)
     return execute_sql(sql, values)
-#51.919104, 4.480833
-
-def close_connection():
-    conn.close()

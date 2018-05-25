@@ -22,7 +22,7 @@ services:
     worker:
         build: ./fundanl
         container_name: worker
-        command: celery -A celery_app worker -P eventlet -c 2 --loglevel=info
+        command: celery -A celery_app worker -l info
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:
@@ -34,7 +34,7 @@ services:
     scrape:
         build: ./fundanl
         container_name: task
-        command: python scraper/main.py
+        command: python scrape.py
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:
@@ -47,9 +47,7 @@ services:
     geocode:
         build: ./fundanl
         container_name: geocode
-        #command: python
-        stdin_open: true
-        tty: true
+        command: python geocode.py
         env_file:
             - .env #RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS
         links:

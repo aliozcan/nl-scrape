@@ -1,12 +1,7 @@
-import schedule
-import sys
-import time
-import logging
-from requests_html import HTMLResponse
-from celery_app import app
-from db import write_geocode_to_db, get_missing_url_coordinates
 from celery.utils.log import get_task_logger
-from proxy import get_session
+from fundanl.proxy import get_session
+from fundanl.celery_app import app
+from fundanl.db import write_geocode_to_db
 
 
 logger = get_task_logger(__name__)
@@ -30,32 +25,8 @@ def geocode(self, url: str, address: str) -> bool:
     else:
         if r.status_code == 200:
             results = r.json()['results']
-            if not len(result) > 0:
+            if not len(results) > 0:
                 return False
             else:
                 location = results[0]['geometry']['location']
                 return write_geocode_to_db(url, location)
-
-
-def iter_urls():
-    result = get_missing_url_coordinates()
-    for url, address in result:
-        geocode.apply_async(args=[url, address])
-
-
-def main():
-    iter_urls()
-    schedule.every().day.at('07:30').do(iter_urls)
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
-
-
-if __name__ == '__main__':
-    logger = logging.getLogger('fundanl')
-    hdlr = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(asctime)s;%(levelname)s;%(message)s;')
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-    logger.setLevel(logging.DEBUG)
-    main()

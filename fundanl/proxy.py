@@ -1,7 +1,7 @@
-from user_agents import user_agents
 import random
 import time
 from requests_html import HTMLSession
+from user_agents import user_agents
 
 
 def get_session(use_proxy: bool) -> HTMLSession:
