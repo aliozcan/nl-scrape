@@ -12,7 +12,14 @@ app = Celery(
     include=['scraper.tasks', 'geocoder.tasks']
 )
 
+task_routes = {
+    'scraper.tasks': {'queue': 'scrape'},
+    'geocoder.tasks': {'queue': 'geocode'}
+}
+
+
 app.conf.update(
     timezone='Europe/Amsterdam',
+    enable_utc=True,
     result_expires=3600
 )

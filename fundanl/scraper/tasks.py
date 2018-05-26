@@ -12,7 +12,7 @@ logger = get_task_logger(__name__)
 @app.task(bind=True, max_retries=3, default_retry_delay=10,
           task_time_limit=60, task_soft_time_limit=50)
 def scrape(self, house_url: str):
-    session = get_session(use_proxy=False)
+    session = get_session(use_proxy=False, default_header=False)
     try:
         logger.info(f'Scraping {house_url}')
         r = session.get(house_url, timeout=5)

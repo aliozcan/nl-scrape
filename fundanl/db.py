@@ -4,6 +4,10 @@ import logging
 import json
 from itertools import chain
 from typing import Dict, Tuple, List
+from celery.utils.log import get_task_logger
+
+
+logger = get_task_logger('db')
 
 
 _connection = (f"host=postgres "
@@ -11,7 +15,6 @@ _connection = (f"host=postgres "
                f"user={os.getenv('POSTGRES_USER')} "
                f"password={os.getenv('POSTGRES_PASSWORD')}")
 conn = psycopg2.connect(_connection)
-logger = logging.getLogger(__name__)
 
 
 def get_unique_urls_by_query(sql: str) -> set:
@@ -31,7 +34,7 @@ def get_missing_url_coordinates() -> List[Tuple[str, str]]:
     sql = ("select url, body->>'Address' "
            'from fundanl '
            'where geometry is null '
-           'limit 1500;')
+           'limit 3;')
     return get_unique_urls_by_query(sql)
 
 
@@ -59,14 +62,14 @@ def init_db():
 def execute_sql(sql: str, *args) -> bool:
     try:
         cur = conn.cursor()
+        #logger.info(f'{sql} with {args}')
         cur.execute(sql, args)
         conn.commit()
     except Exception as e:
         logger.info(f'{e}')
         conn.rollback()
-        return False
     else:
-        return True
+        logger.info(f'{sql} with {args} is done')
     finally:
         cur.close()
 
@@ -77,9 +80,9 @@ def write_results_to_db(url: str, house: Dict) -> bool:
     return execute_sql(sql, *values)
 
 
-def write_geocode_to_db(url: str, coords: Tuple) -> bool:
+def write_geocode_to_db(url: str, coords: Dict) -> bool:
     sql = """update fundanl
             set geometry = ST_PointFromText('POINT(%s %s)', 4326)
             where url = %s"""
-    values = (coords[0], coords[1], url)
+    values = (coords['lat'], coords['lng'], url)
     return execute_sql(sql, values)

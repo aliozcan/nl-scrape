@@ -4,11 +4,12 @@ from requests_html import HTMLSession
 from user_agents import user_agents
 
 
-def get_session(use_proxy: bool) -> HTMLSession:
+def get_session(**kwargs) -> HTMLSession:
     session = HTMLSession()
-    if use_proxy:
+    if kwargs['use_proxy']:
         session.proxies = {'http': 'rproxy:5566', 'https': 'rproxy:5566'}
-    session.headers = get_headers()
+    if not kwargs['default_header']:
+        session.headers = get_headers()
     return session
 
 
@@ -24,10 +25,10 @@ def get_headers() -> dict:
     }
 
 
-def do_request(url: str):
+def do_request(url: str, **kwargs):
     for _ in range(10):
         try:
-            session = get_session(use_proxy=False)
+            session = get_session(**kwargs)
             r = session.get(url, timeout=5)
         except Exception:
             time.sleep(random.randint(60, 150))
