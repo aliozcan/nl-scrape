@@ -34,7 +34,7 @@ def get_missing_url_coordinates() -> List[Tuple[str, str]]:
     sql = ("select url, body->>'Address' "
            'from fundanl '
            'where geometry is null '
-           'limit 3;')
+           'limit 1500;')
     return get_unique_urls_by_query(sql)
 
 
@@ -85,4 +85,4 @@ def write_geocode_to_db(url: str, coords: Dict) -> bool:
             set geometry = ST_PointFromText('POINT(%s %s)', 4326)
             where url = %s"""
     values = (coords['lng'], coords['lat'], url)
-    return execute_sql(sql, values)
+    return execute_sql(sql, *values)
