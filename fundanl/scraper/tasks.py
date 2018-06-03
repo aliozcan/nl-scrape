@@ -29,6 +29,9 @@ def scrape(self, house_url: str):
 def parse_page(r, url: str) -> OrderedDict:
     house = OrderedDict()
     house['Date'] = str(dt.datetime.now())
+    coords_url = r.html.find('img.object-map-static', first=True).attrs['src']
+    lat, lng = coords_url[coords_url.find('center='):coords_url.find('&zoom')][7:].split(',')
+    # house['Coordinates'] = (lng, lat)
     house['Address'] = r.html.find('h1', first=True).text
     house['Price'] = r.html.find('strong', first=True).text
 
@@ -50,5 +53,5 @@ def parse_page(r, url: str) -> OrderedDict:
                     sub_item_list.append(sub_item)
         house.update({k.strip(): v.strip()
                      for k, v in zip(sub_item_list[::2], sub_item_list[1::2])})
-    write_results_to_db(url, house)
+    write_results_to_db(url, (lng, lat), house)
     return True

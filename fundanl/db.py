@@ -74,9 +74,9 @@ def execute_sql(sql: str, *args) -> bool:
         cur.close()
 
 
-def write_results_to_db(url: str, house: Dict) -> bool:
-    sql = "insert into fundanl(url, body) values (%s, %s)"
-    values = (url, json.dumps(house))
+def write_results_to_db(url: str, geometry: Tuple, house: Dict) -> bool:
+    sql = "insert into fundanl(url, body, geometry) values (%s, %s, st_setsrid(st_makepoint(%s, %s), 4326))"
+    values = (url, json.dumps(house), geometry[0], geometry[1])
     return execute_sql(sql, *values)
 
 
@@ -84,5 +84,5 @@ def write_geocode_to_db(url: str, coords: Dict) -> bool:
     sql = """update fundanl
             set geometry = ST_PointFromText('POINT(%s %s)', 4326)
             where url = %s"""
-    values = (coords['lat'], coords['lng'], url)
+    values = (coords['lng'], coords['lat'], url)
     return execute_sql(sql, values)
