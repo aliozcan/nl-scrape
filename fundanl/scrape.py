@@ -20,10 +20,14 @@ def crawl():
     existing_houses = get_scraped_results()
 
     for region_url in urls:
+        logger.info(f'region is starting: {region_url}')
         r = do_request(region_url, use_proxy=False, default_header=False)
+        if r is None:
+            logger.error(f'{region_url} gets no response back')
+            continue
         max_page = [re.search(max_page_regex, link) for link in r.html.links]
         max_page = max([int(page.group(1)) for page in max_page if page])
-        logger.info(f'Max page: {max_page}')
+        logger.info(f'{region_url} : max page: {max_page}')
         for page in range(1, max_page + 1):
             url = f'{region_url}p{page}/'
             r = do_request(url, use_proxy=False, default_header=False)
@@ -35,7 +39,7 @@ def crawl():
                       not in existing_houses]
             scraped_house_count = house_count - len(houses)
             remaining_house_count = house_count - scraped_house_count
-            logger.info(f'{scraped_house_count}/{house_count} exists')
+            logger.info(f'{page}/{max_page}, {scraped_house_count}/{house_count} link scraped')
             random.shuffle(houses)
             for count, house_url in enumerate(houses):
                 existing_houses.add(house_url)
